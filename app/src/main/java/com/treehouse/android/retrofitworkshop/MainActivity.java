@@ -130,13 +130,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Snackbar.make(upload,"Getting Images for Account",Snackbar.LENGTH_SHORT);
 
         Service.getAuthedApi()
+                // Call
                 .images(OAuthUtil.get(OAuthUtil.ACCOUNT_USERNAME),0)
+                // Enqueue Call object
                 .enqueue(new Callback<Basic<ArrayList<Image>>>() {
                     @Override
                     public void onResponse(Call<Basic<ArrayList<Image>>> call, Response<Basic<ArrayList<Image>>> response) {
                         // In Retrofit, onResponse happens on the UI thread
                         // HTTP call succeeded and returned back with data
-                        // at this point Json data has been converted by Gson
+                        // at this point Json data has been converted by Gson into an object
+
+                        // TODO see assets/sample_response.txt to see, how response looks like
+
                         if(response.code()== HttpURLConnection.HTTP_OK){ // 200
                             // replace images in a RecyclerView
                             ((ImageAdapter)recyclerView.getAdapter()).swap(response.body().data);

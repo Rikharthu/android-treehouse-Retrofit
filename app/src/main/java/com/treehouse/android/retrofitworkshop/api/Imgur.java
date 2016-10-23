@@ -17,7 +17,8 @@ public interface Imgur {
     String IMGUR_BASE_URL = "https://api.imgur.com";
     // required by Imgur API. Client that makes the request
     String IMGUR_CLIENT_ID="670b51d31d3b933";
-    // imgur authorization url
+    // imgur authorization url (авторизает к нашей апликации, перенаправит на https://treehouseworkshop:88
+    // предварительно прикрепив данные авторизации к строке
     String AUTHORIZATION_URL="https://api.imgur.com/oauth2/authorize?client_id="+IMGUR_CLIENT_ID
             +"&response_type=token"; // response type. we want to receive token back
     // it's in our request intent-filter. Imgur will redirect us to that URL, which our activity will handle
@@ -34,5 +35,15 @@ public interface Imgur {
         // in retrofit return type is always a generic "Call" from OkHttp
         // we expect to get back Basic<ArrayList<Image>> type
         // i.e. We want to get ArrayList of Images wrapped inside Basic
+    }
+
+    /** Interface that declares API endpoints, their HTTP and callback types, parameters */
+    interface Forecast{
+        // annotate that this is gonna be an Http GET call
+        // see imgur documentation https://darksky.net/dev/docs/forecast
+        @GET("forecast/{key}/{latitude}/{longtitude}")
+        Call<Basic<ArrayList<Image>>> images(@Path("username") String key,
+                                             @Path("latitude") double latitude,
+                                             @Path("longtitude") double longtitude);
     }
 }

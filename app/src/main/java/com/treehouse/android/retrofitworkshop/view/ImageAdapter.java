@@ -31,6 +31,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageHolder>
 
     @Override
     public void onBindViewHolder(ImageHolder holder, int position) {
+        // TODO some comments
+        // link looks like this http:\/\/i.imgur.com\/wBrDNSa.jpg
         Picasso.with(holder.imageView.getContext())
                 .load(images.get(position).link)
                 .into(holder.imageView);
