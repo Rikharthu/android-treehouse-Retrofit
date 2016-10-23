@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 &account_id=40052390 */
 
             // create a temp Uri to make it easier to pull out the data we need
-            Uri temp = Uri.parse("https://treehouseworkshop?" + uri.getFragment().trim());
+            Uri temp = Uri.parse("https://treehouseworkshop?" + uri.getFragment().trim()); // просто заменит # на ?
 
             OAuthUtil.set(OAuthUtil.ACCESS_TOKEN, temp.getQueryParameter(OAuthUtil.ACCESS_TOKEN));
             OAuthUtil.set(OAuthUtil.EXPIRES_IN, System.currentTimeMillis() + (Long.parseLong(temp.getQueryParameter(OAuthUtil.EXPIRES_IN)) * 1000));
