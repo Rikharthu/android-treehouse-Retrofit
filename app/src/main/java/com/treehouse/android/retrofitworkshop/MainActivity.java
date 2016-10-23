@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 
 import com.treehouse.android.retrofitworkshop.api.Imgur;
@@ -27,6 +28,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    public static final String TAG=MainActivity.class.getSimpleName();
 
     @Bind(R.id.toolbar)
     Toolbar toolbar;
@@ -73,11 +76,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
+        /* MainActivity зарегистрирована как обработчик ссылки https//treehouseworkshop:88 в манифесте
+         При авторизации по ссылке регистрации, Imgur API перенаправит нас по ней (мы так настроили)
+         Активность обработает этот интент, и вызовется onResume */
+
+        // Получаем ссылку, по которой нас перенаправил Imgur и прикрепил данные авторизации
         Uri uri = getIntent().getData();
         if (uri != null && uri.toString().startsWith(Imgur.REDIRECT_URI)) {
-            // our application was called as intent-handler after authenticating in Imgur
-            // since in our Imgur API we set redirect link to "https://treehouseworkshop:88"
-            // which we declared to handle in our intent-filter
+            // Достаём данные из ссылки
+
+            Log.d(TAG,uri.toString());
+            /* https://treehouseworkshop:88/
+                #access_token=36ec4adbad5bfd6781d388616c826bac586ed8c2
+                &expires_in=2419200
+                &token_type=bearer
+                &refresh_token=2afde5794d42f11ade45921bd261d1b93fb9576b
+                &account_username=Rikarthu
+                &account_id=40052390 */
 
             // create a temp Uri to make it easier to pull out the data we need
             Uri temp = Uri.parse("https://treehouseworkshop?" + uri.getFragment().trim());
@@ -149,7 +164,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_sign_in:
                 // TODO start login process
                 // open Authorization URI in a browser
-                // TODO make it WebView in a future
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Imgur.AUTHORIZATION_URL)));
                 break;
         }
