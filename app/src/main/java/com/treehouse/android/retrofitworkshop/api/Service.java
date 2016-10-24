@@ -15,7 +15,6 @@ public class Service {
     /** This will return an instance of the Image.Auth */
     public static Imgur.Auth getAuthedApi(){
 
-
         // according to the Imgur API, every request must be authorized
         // => add header to each request vie the interceptor
         OkHttpClient client = new OkHttpClient.Builder()
@@ -39,6 +38,30 @@ public class Service {
                 .baseUrl(Imgur.IMGUR_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create()) // Gson will take care in converting json to objects
                 .client(client) // specify our modified http client with interceptor, which will be used for every call
+                .build()
+                .create(Imgur.Auth.class);
+    }
+
+    /** Anonymous API */
+    public static Imgur.Auth getAnonApi(){
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request authed = chain.request()
+                                .newBuilder()
+                                // change header to from "Bearer' to "Client-ID".
+                                // This is the only difference betwen auther and anon APIs
+                                .addHeader("Authorization","Client-ID "+Imgur.IMGUR_CLIENT_ID)
+                                .build();
+                        return chain.proceed(authed);
+                    }
+                }).build();
+
+        return new Retrofit.Builder()
+                .baseUrl(Imgur.IMGUR_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
                 .build()
                 .create(Imgur.Auth.class);
     }

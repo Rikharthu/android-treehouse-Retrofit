@@ -18,11 +18,17 @@ import com.treehouse.android.retrofitworkshop.model.Basic;
 import com.treehouse.android.retrofitworkshop.model.Image;
 import com.treehouse.android.retrofitworkshop.view.ImageAdapter;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.ArrayList;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okio.BufferedSource;
+import okio.Okio;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -141,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         // at this point Json data has been converted by Gson into an object
 
                         // TODO see assets/sample_response.txt to see, how response looks like
-
                         if(response.code()== HttpURLConnection.HTTP_OK){ // 200
                             // replace images in a RecyclerView
                             ((ImageAdapter)recyclerView.getAdapter()).swap(response.body().data);
@@ -152,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     @Override
                     public void onFailure(Call<Basic<ArrayList<Image>>> call, Throwable t) {
+                        // Notify user about the user
                         Snackbar.make(upload,"Failed :c",Snackbar.LENGTH_SHORT);
                     }
                 });
@@ -161,10 +167,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_upload_anon:
-                // TODO
+                // upload image anonymously
+                uploadAnon();
                 break;
             case R.id.btn_upload:
-                // TODO
+                // upload a single image
+                upload();
                 break;
             case R.id.btn_sign_in:
                 // TODO start login process
@@ -174,5 +182,75 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void upload() {
+        Snackbar.make(upload,"Uploading Image", Snackbar.LENGTH_SHORT).show();
+
+        // create an image using Okio as byte array
+        try {
+            // create a source from InputStream to assets/sample_image.jpg
+            BufferedSource img = Okio.buffer(Okio.source(getAssets().open("sample_image.jpg")));
+            /* source - input stream
+            *  sink - output stream
+            *  buffer - a collection of bytes */
+            // Removes all bytes from this and returns them as a byte array.
+            byte[] image = img.readByteArray();
+
+            // we need to provide a RequestBody (which is our image)
+            RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"),image);
+            Service.getAuthedApi().uploadImage(body)
+                    .enqueue(new Callback<Basic<Image>>() {
+                        @Override
+                        public void onResponse(Call<Basic<Image>> call, Response<Basic<Image>> response) {
+                            if(response.code()==HttpURLConnection.HTTP_OK){
+                                // refresh images
+                                fetchAccountsImage();
+                                Log.d(TAG,"uploaded to "+response.body().data.link);
+                            }else{
+                                Snackbar.make(upload,"Something's gone wrong...",Snackbar.LENGTH_SHORT);
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Basic<Image>> call, Throwable t) {
+                            Snackbar.make(upload,"Failed D:!",Snackbar.LENGTH_SHORT);
+                        }
+                    });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void uploadAnon() {
+        Snackbar.make(upload,"Uploading Image", Snackbar.LENGTH_SHORT).show();
+        try {
+            BufferedSource img = Okio.buffer(Okio.source(getAssets().open("sample_image.jpg")));
+            byte[] image = img.readByteArray();
+
+            RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"),image);
+            Service.getAnonApi().uploadImage(body)
+                    .enqueue(new Callback<Basic<Image>>() {
+                        @Override
+                        public void onResponse(Call<Basic<Image>> call, Response<Basic<Image>> response) {
+                            if(response.code()==HttpURLConnection.HTTP_OK){
+                                // do not fetch account images, since we are not signed in (anon)
+                                // fetchAccountsImage();
+                                Log.d(TAG,"uploaded to "+response.body().data.link);
+                                // redirect user to the uploaded image
+                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(response.body().data.link)));
+                            }else{
+                                Snackbar.make(upload,"Something's gone wrong...",Snackbar.LENGTH_SHORT);
+                            }
+                        }
+                        @Override
+                        public void onFailure(Call<Basic<Image>> call, Throwable t) {
+                            Snackbar.make(upload,"Failed D:!",Snackbar.LENGTH_SHORT);
+                        }
+                    });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

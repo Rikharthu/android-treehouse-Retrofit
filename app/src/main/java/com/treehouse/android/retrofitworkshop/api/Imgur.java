@@ -6,8 +6,12 @@ import com.treehouse.android.retrofitworkshop.model.Image;
 
 import java.util.ArrayList;
 
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
+import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 
 public interface Imgur {
@@ -35,15 +39,21 @@ public interface Imgur {
         // in retrofit return type is always a generic "Call" from OkHttp
         // we expect to get back Basic<ArrayList<Image>> type
         // i.e. We want to get ArrayList of Images wrapped inside Basic
+
+        @Multipart // <-- has multiple parts
+        @POST("3/upload")
+        /** Uploads image to the Imgur.
+         * @return the Image object that was uploaded with a link it was uploaded to */
+        Call<Basic<Image>> uploadImage(@Part("image")RequestBody image);
+
     }
 
-    /** Interface that declares API endpoints, their HTTP and callback types, parameters */
-    interface Forecast{
-        // annotate that this is gonna be an Http GET call
-        // see imgur documentation https://darksky.net/dev/docs/forecast
-        @GET("forecast/{key}/{latitude}/{longtitude}")
-        Call<Basic<ArrayList<Image>>> images(@Path("username") String key,
-                                             @Path("latitude") double latitude,
-                                             @Path("longtitude") double longtitude);
+    /** Interface for another Imgur API, that allows anonymos uploading */
+    interface Anon{
+        @Multipart
+        @POST("3/upload")
+        Call<Basic<Image>> uploadImage(@Part("image")RequestBody image);
+
     }
+
 }
